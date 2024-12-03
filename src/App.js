@@ -31,7 +31,7 @@ const App = () => {
         <DarkModeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
         <div style={{ padding: '20px' }}>
           <Routes>
-            <Route path="/chart" element={<Dashboard />} />
+            <Route path="/" element={<Dashboard />} />
             <Route path="/manager-user" element={<ManagerUser />} />
           </Routes>
         </div>

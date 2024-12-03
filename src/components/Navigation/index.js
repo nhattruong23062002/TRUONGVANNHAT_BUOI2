@@ -9,7 +9,7 @@ const Navigation = () => {
         <ul className="nav-list">
           <li className="nav-item">
             <NavLink 
-              to="/chart" 
+              to="/" 
               className="link"
               activeClassName="active"
             >
