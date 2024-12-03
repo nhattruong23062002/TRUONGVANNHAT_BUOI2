@@ -1,16 +1,12 @@
-.App {
-  text-align: center;
+body {
+  background-color: white;
+  color: black;
+  transition: all 0.3s ease;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.dark-mode {
+  background-color: #121212; 
+  color: white; 
 }
 
 .App-header {
@@ -24,15 +20,113 @@
   color: white;
 }
 
+.dark-mode .App-header {
+  background-color: #1f1f1f; 
+}
+
 .App-link {
   color: #61dafb;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.dark-mode .App-link {
+  color: #4fa3ff; 
+}
+
+.dashboard {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chart-container {
+  width: 100%; 
+  display: flex;
+  flex-direction: column; 
+  align-items: center; 
+  gap: 20px;
+}
+
+.chart {
+  width: 50%;
+  margin-bottom: 20px;
+}
+
+.map-container {
+  margin-top: 40px;
+  width: 50%; 
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.user-table th,
+.user-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.user-table th {
+  background-color: #333;
+  color: white;
+}
+
+.dark-mode .user-table th {
+  background-color: #222; 
+}
+
+.user-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.dark-mode .user-table tr:nth-child(even) {
+  background-color: #333; 
+}
+
+.user-table button {
+  padding: 5px 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.user-table button:hover {
+  background-color: #45a049;
+}
+
+.dark-mode .user-table button {
+  background-color: #333; 
+  color: white;
+}
+
+.filter-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filter-container .search-input {
+  width: 300px;
+}
+
+.filter-container .date-picker {
+  width: 200px;
+}
+
+.dark-mode .filter-container .search-input {
+  background-color: #333;
+  color: white;
+  border: 1px solid #444;
+}
+
+.dark-mode .filter-container .date-picker {
+  background-color: #333;
+  color: white;
+  border: 1px solid #444;
 }
