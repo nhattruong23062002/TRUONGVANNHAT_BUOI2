@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { DatePicker, Input, Select, Button } from "antd";
-import * as XLSX from "xlsx"; 
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { exportToCSV, exportToExcel } from "../utils/utils.js"; 
+import EditUserModal from "../components/ModalEdit";
 const { Option } = Select;
 
 const ManagerUser = () => {
@@ -10,6 +12,16 @@ const ManagerUser = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedRole, setSelectedRole] = useState("");
   const [activityStatus, setActivityStatus] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editUserId, setEditUserId] = useState(null);
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    age: "",
+    status: "",
+    city: "",
+    country: ""
+  });
 
   useEffect(() => {
     axios
@@ -67,61 +79,61 @@ const ManagerUser = () => {
     setSelectedDate(date ? date.toDate() : null);
   };
 
-  const exportToCSV = () => {
-    const csvData = filteredUsers.map((user, index) => ({
-      STT: index + 1,
-      Name: user.name,
-      Age: user.age,
-      Email: user.email,
-      Status: user.status,
-      Location: `${user.address.city}, ${user.address.country}`,
-      Role: user.role,
-      "Registration Date": new Date(user.registrationDate).toLocaleDateString(),
-      "Activity Status": getActivityStatus(user.activityHistory),
-    }));
-
-    const csvHeaders = [
-      "STT",
-      "Name",
-      "Age",
-      "Email",
-      "Status",
-      "Location",
-      "Role",
-      "Registration Date",
-      "Activity Status",
-    ];
-
-    const csvRows = [
-      csvHeaders.join(","), 
-      ...csvData.map((row) =>
-        csvHeaders.map((header) => row[header]).join(",")
-      ),
-    ];
-
-    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "users.csv";
-    link.click();
+  const handleEditUser = (userId) => {
+    const userToEdit = users.find((user) => user.id === userId);
+    if (userToEdit) {
+      setUserData({
+        name: userToEdit.name,
+        email: userToEdit.email,
+        age: userToEdit.age,
+        status: userToEdit.status,
+        city: userToEdit.address.city,
+        country: userToEdit.address.country,
+      });
+      setEditUserId(userId);
+      setIsModalVisible(true);
+    }
   };
 
-  const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(filteredUsers.map((user, index) => ({
-      STT: index + 1,
-      Name: user.name,
-      Age: user.age,
-      Email: user.email,
-      Status: user.status,
-      Location: `${user.address.city}, ${user.address.country}`,
-      Role: user.role,
-      "Registration Date": new Date(user.registrationDate).toLocaleDateString(),
-      "Activity Status": getActivityStatus(user.activityHistory),
-    })));
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+  };
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Users");
-    XLSX.writeFile(wb, "users.xlsx");
+  const handleModalSave = () => {
+    const updatedUsers = users.map((user) =>
+      user.id === editUserId
+        ? {
+            ...user,
+            ...userData,
+            address: {
+              ...user.address,
+              city: userData.city,
+              country: userData.country,
+            },
+          }
+        : user
+    );
+    setUsers(updatedUsers);
+    setIsModalVisible(false);
+  };
+
+  const handleInputChange = (updatedUserData) => {
+    setUserData(updatedUserData);
+  };
+
+  const handleDelete = (userId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this user?");
+    if (!confirmDelete) return;
+    axios
+      .delete(`http://localhost:5000/users/${userId}`)
+      .then((response) => {
+        setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+        alert("User deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting user:", error);
+        alert("There was an error deleting the user");
+      });
   };
 
   return (
@@ -136,7 +148,6 @@ const ManagerUser = () => {
             className="date-picker"
             placeholder="Select a Registration Date"
           />
-
           <Select
             value={selectedRole}
             onChange={(value) => setSelectedRole(value)}
@@ -148,7 +159,6 @@ const ManagerUser = () => {
             <Option value="Guest">Guest</Option>
             <Option value="User">User</Option>
           </Select>
-
           <Select
             value={activityStatus}
             onChange={(value) => setActivityStatus(value)}
@@ -172,10 +182,10 @@ const ManagerUser = () => {
       </div>
 
       <div style={{ marginBottom: "20px" }}>
-        <Button onClick={exportToCSV} style={{ marginRight: "16px" }}>
+        <Button onClick={() => exportToCSV(filteredUsers)} style={{ marginRight: "16px" }}>
           Export to CSV
         </Button>
-        <Button onClick={exportToExcel}>Export to Excel</Button>
+        <Button onClick={() => exportToExcel(filteredUsers)}>Export to Excel</Button>
       </div>
 
       <table
@@ -193,6 +203,7 @@ const ManagerUser = () => {
             <th>Role</th>
             <th>Registration Date</th>
             <th>Activity Status</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -203,18 +214,37 @@ const ManagerUser = () => {
               <td>{user.age}</td>
               <td>{user.email}</td>
               <td>{user.status}</td>
-              <td>
-                {user.address.city}, {user.address.country}
-              </td>
+              <td>{user.address.city}, {user.address.country}</td>
               <td>{user.role}</td>
-              <td>
-                {new Date(user.registrationDate).toLocaleDateString()}
-              </td>
+              <td>{new Date(user.registrationDate).toLocaleDateString()}</td>
               <td>{getActivityStatus(user.activityHistory)}</td>
+              <td>
+                <Button 
+                  icon={<EditOutlined />} 
+                  onClick={() => handleEditUser(user.id)} 
+                  style={{ marginRight: "8px" }}
+                  title="Edit"
+                />
+                <Button 
+                  icon={<DeleteOutlined />} 
+                  onClick={() => handleDelete(user.id)} 
+                  style={{ color: "red" }}
+                  danger
+                  title="Delete"
+                />
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      <EditUserModal
+        visible={isModalVisible}
+        userData={userData}
+        onClose={handleModalClose}
+        onSave={handleModalSave}
+        onChange={handleInputChange}
+      />
     </div>
   );
 };
